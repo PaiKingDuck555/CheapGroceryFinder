@@ -209,7 +209,7 @@
       storeListContainer.innerHTML = '<div class="loading">Finding nearby stores...</div>';
 
       try {
-        const response = await fetch('/grocery-stores');
+        const response = await fetch('/grocery-location');
         if (!response.ok) {
           throw new Error('Failed to fetch store data');
         }

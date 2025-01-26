@@ -1,6 +1,9 @@
 const puppeteer = require('puppeteer');
 const fs = require('fs');  
-const path = require('path');
+const path = require('path'); 
+const { handleCombinedInput, textInput} = require('./chatgpt'); 
+
+
 
 
 const stores = [{
@@ -13,6 +16,7 @@ const stores = [{
   storeName: 'Aldi',
   url: (product) => `https://new.aldi.us/results?q=${encodeURIComponent(product)}`,
 }];
+
 //This is a method that takes in a url, storeName, and product. 
 // It then takes a screenshot of the page and saves it to the screenshots folder.
 const fetchPageScreenshot = async (url, storeName, product) => {

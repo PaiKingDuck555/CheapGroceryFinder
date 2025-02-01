@@ -115,10 +115,11 @@
   </div>
 
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDqsSuEJNTpCH2BxaPb5hoMSeeC9a5D8Bk&libraries=places&callback=initMap" async defer></script>
-  <script>
+  <script> 
     // Form submission handler
     const form = document.getElementById('scrapeForm');
     let map;
+    //These are locations on our map that we set. 
     let markers = [];
 
     //This is what happens directly after we submit our form. 
@@ -143,6 +144,7 @@
       }
     });
 
+    //Display Product Results
     function displayResults(data) {
       const resultsDiv = document.getElementById('results');
       resultsDiv.innerHTML = '';
@@ -203,18 +205,19 @@
       }
     }
 
-    // Fetch grocery stores
+    // Fetch Grocery Stores
     async function fetchGroceryStores() {
       const storeListContainer = document.getElementById("store-list");
       storeListContainer.innerHTML = '<div class="loading">Finding nearby stores...</div>';
 
       try {
         const response = await fetch('/grocery-location');
-        if (!response.ok) {
-          throw new Error('Failed to fetch store data');
-        }
 
-        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+    
+    const data = await response.json();
         displayStores(data.storeLocations);
       } catch (error) {
         storeListContainer.innerHTML = `<div class="error">Error: ${error.message}</div>`;
@@ -222,7 +225,9 @@
     }
 
     // Display stores on map and in list
-    function displayStores(stores) {
+    //Note that the stores variable comes from fetchGroceryStores function
+    function displayStores(stores) { 
+      console.log(stores); 
       const storeListContainer = document.getElementById("store-list");
       storeListContainer.innerHTML = "";
 
@@ -232,7 +237,8 @@
 
       // Here we make a for loop for all the stores in the stores list and then we add them to our markers. 
       stores.forEach((store, index) => {
-        // Create list item
+        // Create list item 
+        console.log(store);
         const storeItem = document.createElement("div");
         storeItem.className = "store-item";
         storeItem.innerHTML = `
@@ -263,7 +269,7 @@
         marker.addListener('click', () => {
           infoWindow.open(map, marker);
         });
-
+        //Here we add the marker we jsut made to our marker array. 
         markers.push(marker);
       });
 

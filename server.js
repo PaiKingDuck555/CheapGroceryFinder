@@ -12,7 +12,7 @@ app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Product scraping endpoint
-app.get('/scrape', async (req, res) => {
+app.get('/scraper', async (req, res) => {
   const products = req.query.products?.split(',').map(product => product.trim()) || [];
 
   if (!products.length) {
@@ -32,7 +32,7 @@ app.get('/scrape', async (req, res) => {
 });  
 
 // Store locator endpoint
-app.get('/grocery-stores', async (req, res) => {
+app.get('/grocery-location', async (req, res) => {
   try {
     const storeLocations = await getGroceryStores();
     res.json(storeLocations);

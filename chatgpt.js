@@ -1,37 +1,22 @@
 const OpenAI = require("openai");
 require('dotenv').config();
-const Tesseract = require("tesseract.js"); 
+const Tesseract = require("tesseract.js");
 
 // OpenAI API setup
-// const configuration = new Configuration({
-//     apiKey: process.env.OPEN_AI_API_KEY // Replace with your OpenAI API key
-// });
-
-const openai = new OpenAI({ apiKey: process.env.OPEN_AI_API_KEY
+const openai = new OpenAI({ 
+    apiKey: process.env.OPEN_AI_API_KEY 
 });
-
-(async () => {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [
-        { role: "system", content: "You are a helpful assistant." },
-        { role: "user", content: "Write a haiku about loving Russel Westbrook" },
-      ],
-      store: true,
-    });
-  
-    console.log(completion.choices[0].message.content);
-  })();
 
 // Function to extract text from an image file
 async function extractTextFromImage(imagePath) {
     try {
         const result = await Tesseract.recognize(imagePath, "eng", {
-            logger: (info) => console.log(info), // Optional: Log OCR progress
+            logger: (info) => console.log(info)
         });
-        return result.data.text.trim(); // Trim whitespace for cleaner input
+        return result.data.text.trim();
     } catch (error) {
         console.error("Error with Tesseract.js:", error.message);
+        throw error; // Propagate error to caller
     }
 }
 
@@ -40,43 +25,69 @@ async function submitCombinedQuery(userText, screenshotText) {
     const combinedQuery = `
         User Input: ${userText}
         Screenshot Content: ${screenshotText}
-    `;
+    `.trim();
+
     try {
-        const response = await openai.createChatCompletion({
+        const response = await openai.chat.completions.create({
             model: "gpt-3.5-turbo",
-            messages: [{ role: "user", content: combinedQuery }],
+            messages: [{ 
+                role: "user", 
+                content: combinedQuery 
+            }],
+            temperature: 0.7,
+            max_tokens: 500
         });
-        return response.data.choices[0].message.content;
+
+        // Check if response and choices exist
+        if (!response || !response.choices || !response.choices[0]) {
+            throw new Error("Invalid response format from OpenAI");
+        }
+
+        return response.choices[0].message.content;
     } catch (error) {
         console.error("Error with OpenAI API:", error.message);
+        throw error; // Propagate error to caller
     }
 }
 
 // Main function to handle both text and screenshot inputs
 async function handleCombinedInput(userText, screenshotPath) {
     try {
-        console.log("Extracting text from the screenshot...");
-        const screenshotText = await extractTextFromImage(screenshotPath);
+        console.log("Processing input...");
+        
+        let screenshotText = "";
+        if (screenshotPath) {
+            console.log("Extracting text from the screenshot...");
+            screenshotText = await extractTextFromImage(screenshotPath);
+        }
 
-        console.log("Submitting combined query to OpenAI...");
+        console.log("Submitting query to OpenAI...");
         const response = await submitCombinedQuery(userText, screenshotText);
-
+        
         console.log("OpenAI Response:", response);
+        return response;
     } catch (error) {
-        console.error("Error:", error.message);
-    }
-} 
-
-//This is just in case I want to use only text, mainly use this to get the URL in URI format from chatgpt and then make a list. 
-async function textInput(userText){ 
-    try{ 
-        submitCombinedQuery(userText, ""); 
-        console.log("OpenAI Response:", response);
-    } 
-    catch(error){ 
-        console.error("Error:", error.message); 
+        console.error("Error in handleCombinedInput:", error.message);
+        throw error; // Propagate error to caller
     }
 }
+
+// Function for text-only input
+async function textInput(userText) {
+    try {
+        const response = await submitCombinedQuery(userText, "");
+        console.log("OpenAI Response:", response);
+        return response;
+    } catch (error) {
+        console.error("Error in textInput:", error.message);
+        throw error;
+    }
+}
+
+module.exports = { 
+    handleCombinedInput,
+    textInput
+};
 
 // Example usage
 // const userText = "Can you summarize this information?";

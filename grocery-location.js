@@ -1,4 +1,5 @@
 const axios = require('axios');
+require('dotenv').config();
 
 const getLocationFromIP = async () => {
   try {
@@ -15,7 +16,7 @@ const getLocationFromIP = async () => {
 
 const getNearbyGroceryStores = async (latitude, longitude) => {
   console.log("🔍 Fetching Nearby Grocery Stores");
-  const apiKey = 'AIzaSyDqsSuEJNTpCH2BxaPb5hoMSeeC9a5D8Bk';
+  const apiKey = process.env.GOOGLE_MAPS_API_KEY;
   const searchRadius = 2000;
   const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=${searchRadius}&type=grocery_or_supermarket&key=${apiKey}`;
 

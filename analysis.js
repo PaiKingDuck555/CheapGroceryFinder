@@ -35,6 +35,7 @@ async function processScreenshots() {
                         "2. If the store name is visible, use it. If not, **do not guess** the store name.\n" +
                         '3. If no product or price can be found, respond with: **"Unable to find product"**.\n' +
                         "4. Do **not** add extra details or descriptions—just the formatted response.\n" +
+                        '5. I want to note that it is unacceptable to have a response without a dollar amount. That said, I dont want any false answers so put **"Unable to find product"** if you truly cant find a product ' +
                         "\nNow, extract and format the price from the given screenshot.",
                         filePath
                     );
@@ -53,7 +54,7 @@ async function processScreenshots() {
         throw error;
     }
 }
-
+let product_response = [];
 // Main execution
 async function screenshotAnalysis() {
     try {
@@ -61,8 +62,10 @@ async function screenshotAnalysis() {
         
         console.log("\n✅ All results received:");
         results.forEach((result, index) => {
-            console.log(`Result ${index + 1} - ${result.file}: ${result.response}`);
+            console.log(`Result ${index + 1} - ${result.file}: ${result.response}`); 
+            product_response.push(result.response);
         });
+        return results.map(result => result.response);
     } catch (error) {
         console.error("Fatal error processing screenshots:", error);
         process.exit(1);
@@ -70,5 +73,4 @@ async function screenshotAnalysis() {
 }
 
 // Run the script
-screenshotAnalysis(); 
 module.exports = { screenshotAnalysis};

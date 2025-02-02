@@ -116,7 +116,8 @@
 
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDqsSuEJNTpCH2BxaPb5hoMSeeC9a5D8Bk&libraries=places&callback=initMap" async defer></script>
   <script> 
-    // Form submission handler
+    // Form submission handler 
+
     const form = document.getElementById('scrapeForm');
     let map;
     //These are locations on our map that we set. 
@@ -131,14 +132,20 @@
       resultsDiv.innerHTML = '<div class="loading">Searching for products...</div>';
 
       try {
-        const response = await fetch(`/scrape?products=${encodeURIComponent(products)}`);
+        const response = await fetch(`/scrape`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ products })
+        });
+        
         //Here fetch is used to connect to the backend server and seperate the data. 
         if (!response.ok) {
           throw new Error('Failed to fetch product data');
         }
-        
         const data = await response.json();
-        displayResults(data);
+        displayResults(data.stores);
       } catch (error) {
         resultsDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
       }
@@ -146,35 +153,35 @@
 
     //Display Product Results
     function displayResults(data) {
-      const resultsDiv = document.getElementById('results');
-      resultsDiv.innerHTML = '';
+    console.log("Received data:", data);
+    const resultsDiv = document.getElementById('results');
+    resultsDiv.innerHTML = '';
 
-      data.forEach(store => {
+    // Loop through each store in data
+    data.forEach(store => {
         const storeDiv = document.createElement('div');
         storeDiv.className = 'store-result';
-        
+
+        // Store name as heading
         storeDiv.innerHTML = `<h2>${store.storeName}</h2>`;
-        
-        store.results.forEach(query => {
-          const queryDiv = document.createElement('div');
-          queryDiv.className = 'product-result';
-          
-          queryDiv.innerHTML = `
-            <h3>Results for "${query.query}":</h3>
-            ${query.products.length > 0 ? 
-              query.products.map(item => 
-                `<p><strong>${item.productName}</strong>: $${item.price.toFixed(2)}</p>`
-              ).join('') :
-              '<p>No products found</p>'
-            }
-          `;
-          
-          storeDiv.appendChild(queryDiv);
+
+        // Iterate through store products
+        store.products.forEach(product => {
+            const productDiv = document.createElement('div');
+            productDiv.className = 'product-result';
+
+            // Display product name and price
+            productDiv.innerHTML = `
+                <p><strong>${product.productName}</strong>: ${product.priceData}</p>
+            `;
+
+            storeDiv.appendChild(productDiv);
         });
-        
+
         resultsDiv.appendChild(storeDiv);
-      });
-    }
+    });
+}
+
 
     // Initialize Google Map
     async function initMap() {
@@ -237,15 +244,6 @@
 
       // Here we make a for loop for all the stores in the stores list and then we add them to our markers. 
       stores.forEach((store, index) => {
-        // Create list item 
-        console.log(store);
-        const storeItem = document.createElement("div");
-        storeItem.className = "store-item";
-        storeItem.innerHTML = `
-          <h3>${store.name}</h3>
-          <p>${store.address}</p>
-        `;
-        storeListContainer.appendChild(storeItem);
 
         // Add marker to map
         const marker = new google.maps.Marker({
